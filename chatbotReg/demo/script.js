@@ -11,7 +11,7 @@ function addMessage(sender, text) {
   const message = document.createElement("div");
   message.classList.add("chat-message");
   if (sender === "Assistant") message.classList.add("assistant");
-  message.innerHTML = `<p><strong>${sender}:</strong> ${text}</p>`;
+  message.innerHTML = <p><strong>${sender}:</strong> ${text}</p>;
   chatContent.appendChild(message);
   chatContent.scrollTop = chatContent.scrollHeight; // Auto-scroll to latest message
 }
@@ -34,7 +34,7 @@ function startChatbot() {
     .then(data => {
       conversationId = data.conversation_id;
       console.log("Chatbot started with ID:", conversationId);
-      addMessage("Assistant", "Chatbot started. Please enter your details.");
+      addMessage("Assistant", "Hi ! How can I help you?");
     })
     .catch(error => {
       console.error("Error starting chatbot:", error);
@@ -94,7 +94,7 @@ function processChatbot(userInput) {
 function showPreview() {
   let previewMessage = "<p><strong>Preview your details:</strong></p><ul>";
   for (const key in userResponses) {
-    previewMessage += `<p><strong>${key}:</strong> ${userResponses[key]}</p>`;
+    previewMessage += <p><strong>${key}:</strong> ${userResponses[key]}</p>;
   }
   // previewMessage += "</ul>";
   addMessage("Assistant", previewMessage);
@@ -102,14 +102,29 @@ function showPreview() {
 
 // Function to register data to MongoDB
 function registerDataToMongoDB() {
-  fetch("http://127.0.0.1:8000/api/register/", {
+  fetch("http://13.235.33.220/api/register/", {
     method: "POST",
     headers: {
       "Accept": "application/json",
       "Content-Type": "application/json"
     },
-    mode: "cors",
-    body: JSON.stringify(userResponses)
+    body: JSON.stringify({
+      "full_name": userResponses.full_name || "",
+      "email": userResponses.email || "",
+      "mobile": userResponses.mobile || "",
+      "age_group": userResponses.age_group || "",
+      "abhyasi_id": userResponses.abhyasi_id || "",
+      "arrival_date": userResponses.arrival_date || "",
+      "departure_date": userResponses.departure_date || "",
+      "travel_requirements": {
+        "transport_mode": userResponses.transport_mode || "",
+        "arrival_location": userResponses.arrival_location || ""
+      },
+      "accommodation": {
+        "type": userResponses.accommodation_type || "",
+        "number_of_people": parseInt(userResponses.number_of_people) || 0
+      }
+    })
   })
     .then(response => {
       if (!response.ok) {
@@ -119,11 +134,14 @@ function registerDataToMongoDB() {
     })
     .then(data => {
       console.log("Data saved to MongoDB:", data);
+      addMessage("Assistant", "Your data has been successfully registered!");
     })
     .catch(error => {
       console.error("Error saving data to MongoDB:", error);
+      addMessage("Assistant", "There was an error saving your data. Please try again.");
     });
 }
+
 
 // Function to handle sending user messages
 function sendMessage() {    
